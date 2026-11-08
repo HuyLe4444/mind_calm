@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://qdfc02w4ls88"]
+
+[ext_resource type="Script" uid="uid://cnm7jyeg8jx2u" path="res://Scripts/main.gd" id="1_8gbba"]
+[ext_resource type="PackedScene" uid="uid://beuf7ak146wdc" path="res://Scenes/mind.tscn" id="1_jjgbg"]
+[ext_resource type="PackedScene" uid="uid://b0sjhxcl2mu10" path="res://Scenes/goal.tscn" id="4_jjvhh"]
+
+[node name="Main" type="Node2D" unique_id=1225009415]
+script = ExtResource("1_8gbba")
+
+[node name="Mind" parent="." unique_id=331771235 instance=ExtResource("1_jjgbg")]
+position = Vector2(84, 161)
+
+[node name="GoalLeft" parent="." unique_id=595141553 instance=ExtResource("4_jjvhh")]
+position = Vector2(76, 163)
+
+[node name="GoalRight" parent="." unique_id=1567487662 instance=ExtResource("4_jjvhh")]
+position = Vector2(1059, 182)

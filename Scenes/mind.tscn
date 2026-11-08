@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://beuf7ak146wdc"]
+
+[ext_resource type="Script" uid="uid://bg2fut6ehgqwu" path="res://Scripts/mind.gd" id="1_aeemn"]
+[ext_resource type="Texture2D" uid="uid://jpq16y5lqbcn" path="res://Assets/original-2F6BD42F-D429-4F97-9C4A-AED61D676EE8.png" id="2_aeemn"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_aeemn"]
+
+[node name="Mind" type="CharacterBody2D" unique_id=1870369604]
+script = ExtResource("1_aeemn")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="." unique_id=1613511557]
+lifetime = 0.5
+emission_shape = 1
+emission_sphere_radius = 8.57
+gravity = Vector2(0, 100)
+scale_amount_max = 8.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=181563644]
+position = Vector2(2.3841858e-07, 2.3841858e-07)
+scale = Vector2(0.16336347, 0.16336347)
+texture = ExtResource("2_aeemn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1335241291]
+shape = SubResource("CircleShape2D_aeemn")
