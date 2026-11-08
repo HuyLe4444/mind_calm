@@ -81,6 +81,9 @@ const DISTORT_MAX := 28.0            # độ lệch tối đa (pixel), bằng bi
 const DISTORT_BEND_LENGTH := 220.0   # độ dài mỗi nhịp uốn cong
 const DISTORT_ZIG_LENGTH := 90.0     # bước sóng zigzag khi nhiễu chạm đỉnh
 
+var erase_center: Vector2 = Vector2.ZERO   # tâm vùng bị xóa (tọa độ toàn cục)
+var erase_radius: float = -1.0             # < 0 = không xóa gì
+
 var kind: String = "ring"        # "ring", "bar", "zigzag", "sine"
 var dir_name: String = "down"    # hướng đi của bar, zigzag, sine
 var color: Color = Color(0.33, 0.22, 0.15)
@@ -337,4 +340,17 @@ func _is_touching_player() -> bool:
 # --- Vẽ ---
 func _draw() -> void:
 	for seg in _segments:
-		draw_polyline(seg, color, thickness, true)
+		if erase_radius < 0.0:
+			draw_polyline(seg, color, thickness, true)
+			continue
+		# Chỉ vẽ những đoạn nằm ngoài vòng sóng hồng
+		var run := PackedVector2Array()
+		for p in seg:
+			if (global_position + p).distance_to(erase_center) >= erase_radius:
+				run.append(p)
+			else:
+				if run.size() >= 2:
+					draw_polyline(run, color, thickness, true)
+				run = PackedVector2Array()
+		if run.size() >= 2:
+			draw_polyline(run, color, thickness, true)

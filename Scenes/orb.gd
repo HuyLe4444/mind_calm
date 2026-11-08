@@ -8,13 +8,21 @@ signal collected(orb)
 @export var edge_color: Color = Color(0.45, 0.02, 0.05)   # viền đỏ sẫm
 @export var radius: float = 14.0
 @export var particle_amount: int = 22
+@export var softness: float = 0.0   # 0 = bình thường, 1 = rất nhạt và ít tương phản
 
+var base_alpha: float = 1.0
 var _time: float = randf() * TAU
 var _halo: Sprite2D
 var _tex: GradientTexture2D
 var _got: bool = false
 
 func _ready() -> void:
+	if softness > 0.0:
+		var bg := Color("f5ecd7")
+		core_color = core_color.lerp(bg, softness * 0.55)
+		edge_color = edge_color.lerp(bg, softness * 0.5)
+		base_alpha = 1.0 - softness * 0.3
+		modulate.a = base_alpha
 	# Vùng chạm lớn hơn hình vẽ 4 px cho dễ nhặt
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()

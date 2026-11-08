@@ -18,11 +18,13 @@ var _time: float = 0.0
 var _started: bool = false
 var _waiting: bool = false
 var _leaving: bool = false
+var _credits: Label
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(CREAM)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
+	_build_credits()
 	_build_hint()
 	_build_cover()
 	_build_filter()
@@ -125,10 +127,13 @@ func _on_start_pressed() -> void:
 	_started = true
 	_button.disabled = true
 
-	# Tiêu đề và nút mờ đi
-	await create_tween().tween_property(_ui, "modulate:a", 0.0, 0.6).finished
+	# Tiêu đề, nút và credit mờ đi
+	var fade := create_tween().set_parallel(true)
+	fade.tween_property(_ui, "modulate:a", 0.0, 0.6)
+	fade.tween_property(_credits, "modulate:a", 0.0, 0.6)
+	await fade.finished
 	_ui.visible = false
-
+	
 	# Hiện dòng hướng dẫn
 	_hint.text = "Press %s to breathe" % _key_name()
 	await create_tween().tween_property(_hint, "modulate:a", 1.0, 0.8).finished
@@ -156,3 +161,14 @@ func _key_name() -> String:
 			if e is InputEventJoypadButton:
 				return "Button " + str(e.button_index)
 	return "X"
+
+func _build_credits() -> void:
+	_credits = Label.new()
+	_credits.text = "Game Design by Huy\nArt by Thy\nMusic by Kiese*P"
+	_credits.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_credits.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	_credits.add_theme_font_size_override("font_size", 16)
+	_credits.add_theme_color_override("font_color", Color(INK, 0.7))
+	_credits.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_credits)
+	_credits.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 20)

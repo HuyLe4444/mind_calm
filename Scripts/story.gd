@@ -269,3 +269,38 @@ func show_end(text: String) -> void:
 	bg.add_child(label)
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 80)
 	await create_tween().tween_property(bg, "modulate:a", 1.0, 1.5).finished
+	
+# Dòng hướng dẫn giữa màn hình; chờ người chơi bấm phím hoặc hết timeout
+func show_hint(text: String, action: StringName, timeout: float = 8.0) -> void:
+	var cl := CanvasLayer.new()
+	cl.layer = 25
+	add_child(cl)
+	var label := Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 40)
+	label.add_theme_color_override("font_color", Color(0.20, 0.16, 0.14))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.modulate.a = 0.0
+	cl.add_child(label)
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	await create_tween().tween_property(label, "modulate:a", 1.0, 0.8).finished
+	var elapsed := 0.0
+	while elapsed < timeout:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+		label.modulate.a = 0.75 + 0.25 * sin(elapsed * 4.0)
+		if InputMap.has_action(action) and Input.is_action_just_pressed(action):
+			break
+	await create_tween().tween_property(label, "modulate:a", 0.0, 0.5).finished
+	cl.queue_free()
+	
+# Trả ảnh nền về hình đang dùng của arc hiện tại, hiện giữa màn như thường
+func restore_portrait(time: float = 0.8) -> void:
+	_ensure_portrait()
+	portrait.visible = true
+	_breathing = false
+	if _normal_tex != null:
+		portrait.texture = _normal_tex
+	await fade_portrait(game_alpha, time)

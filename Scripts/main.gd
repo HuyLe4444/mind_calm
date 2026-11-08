@@ -1,290 +1,4 @@
 extends Node2D
-#
-#@onready var goal_left: Goal = $GoalLeft
-#@onready var goal_right: Goal = $GoalRight
-#
-## Mỗi level là danh sách các mẫu sóng
-#var levels: Array = [
-	## Level 1: tròn, 1 đợt, chậm
-	#[ {rings = 1, speed = 120, thickness = 8, pause = 2.5} ],
-	## Level 2: tròn, 2 đợt
-	#[ {rings = 2, interval = 0.7, speed = 130, thickness = 8, pause = 2.0} ],
-	## Level 3: bắt đầu méo, hai điểm tạo sóng
-	#[ {rings = 2, interval = 0.6, speed = 150, lobes = 3, amplitude = 0.15},
-	  #{rings = 2, interval = 0.6, speed = 150, delay = 1.5} ],
-	## Level 4: hoa 5 cánh xoay, dày hơn, có khe hở
-	#[ {rings = 3, interval = 0.5, speed = 180, thickness = 14,
-	   #lobes = 5, amplitude = 0.3, spin = 1.2, gap_size = 0.9, damage = 2} ],
-#]
-#
-#var level_index: int = 0
-#var run_id: int = 0   # đổi mỗi level để các vòng lặp của level cũ tự dừng
-#
-#func _ready() -> void:
-	#goal_left.body_entered.connect(_on_goal_entered.bind(goal_left))
-	#goal_right.body_entered.connect(_on_goal_entered.bind(goal_right))
-	#start_level(0)
-#
-## Level chẵn (0, 2, ...) đi trái sang phải; level lẻ đi ngược lại
-#func _active_goal(index: int) -> Goal:
-	#return goal_right if index % 2 == 0 else goal_left
-#
-#func start_level(index: int) -> void:
-	#level_index = index
-	#run_id += 1
-	#var active := _active_goal(index)
-	#for g in [goal_left, goal_right]:
-		#g.set_active(g == active)
-	#for pattern in levels[index]:
-		#_run_pattern(pattern, run_id)
-#
-#func _on_goal_entered(body: Node2D, goal: Goal) -> void:
-	#if not body.is_in_group("mind") or goal != _active_goal(level_index):
-		#return
-	#run_id += 1   # dừng mọi mẫu sóng đang lặp
-	#get_tree().call_group("ripples", "queue_free")
-	#if level_index + 1 >= levels.size():
-		#print("Thắng toàn bộ game!")   # thay bằng màn hình chiến thắng
-		#return
-	#await get_tree().create_timer(1.0).timeout
-	#start_level(level_index + 1)
-#
-#func _run_pattern(p: Dictionary, id: int) -> void:
-	#await get_tree().create_timer(p.get("delay", 0.0)).timeout
-	#while id == run_id:
-		#var origin: Vector2 = p.get("origin", _random_origin())
-		#for i in range(p.get("rings", 1)):
-			#if id != run_id:
-				#return
-			#_spawn_ripple(origin, p)
-			#await get_tree().create_timer(p.get("interval", 0.5)).timeout
-		#await get_tree().create_timer(p.get("pause", 1.5)).timeout
-#
-#func _spawn_ripple(origin: Vector2, p: Dictionary) -> void:
-	#var r := Ripple.new()
-	#add_child(r)
-	#r.global_position = origin
-	#r.speed = p.get("speed", 150.0)
-	#r.thickness = p.get("thickness", 10.0)
-	#r.damage = p.get("damage", 1)
-	#r.lobes = p.get("lobes", 0)
-	#r.amplitude = p.get("amplitude", 0.0)
-	#r.spin = p.get("spin", 0.0)
-	#r.gap_size = p.get("gap_size", 0.0)
-	#r.gap_angle = randf() * TAU
-#
-#func _random_origin() -> Vector2:
-	## Đổi số cho khớp với khung của bạn
-	#return Vector2(randf_range(150, 450), randf_range(150, 350))
-#
-#@export var divider_thickness: float = 1.0
-#@export var goal_inset: float = 50.0
-#@export var show_points: bool = true
-#@export var touch_speed_gain: float = 1.2
-#@export var speed_recovery: float = 0.25
-#@export var max_speed_mult: float = 3.0
-#@export var distortion_per_hit: float = 0.25    # mỗi lần dính tăng bao nhiêu (1.0 là đỉnh)
-#@export var distortion_recovery: float = 0.12   # giảm mỗi giây khi không bị dính
-#var distortion: float = 0.0
-#
-#@onready var goal_left: Goal = $GoalLeft
-#@onready var goal_right: Goal = $GoalRight
-#
-#var levels: Array = [
-	## 1: làm quen. Sóng tròn, chỗ đứt rộng, nghỉ lâu
-	#[ {points = [2, 7], speed = 90, gap_width = 100, pause = 5.0} ],
-#
-	## 2: hai đợt liền nhau
-	#[ {points = [3, 6], rings = 2, interval = 1.5, speed = 95,
-	   #gap_width = 100, pause = 3.5} ],
-#
-	## 3: hai điểm phát lệch nhịp nhau
-	#[ {points = [2], rings = 2, interval = 1.4, speed = 100, pause = 3.5},
-	  #{points = [7], rings = 2, interval = 1.4, speed = 100, delay = 2.0, pause = 3.5} ],
-#
-	## 4: SÓNG MÉO (hình elip xoay chậm)
-	#[ {points = [2, 6], lobes = 2, amplitude = 0.22, spin = 0.5, speed = 95,
-	   #pause = 4.5} ],
-#
-	## 5: sóng méo ba cánh kèm sóng tròn lệch nhịp
-	#[ {points = [3, 7], rings = 2, interval = 1.5, lobes = 3, amplitude = 0.12,
-	   #spin = 0.4, speed = 100, pause = 3.5},
-	  #{points = [1], speed = 90, delay = 2.5, pause = 5.0} ],
-#
-	## 6: THANH NGANG đầu tiên, dài gần hết màn, ba thanh liên tiếp mỗi thanh khe một chỗ
-	#[ {kind = "bar", points = [2], span = 900, rings = 3, interval = 1.6,
-	   #speed = 100, gap_count = 3, gap_width = 70, pause = 2.5} ],
-#
-	## 7: hai thanh đi ngược chiều cắt nhau giữa màn (điểm 3 đi xuống, điểm 6 đi lên)
-	#[ {kind = "bar", points = [3, 6], span = 800, rings = 3, interval = 1.5,
-	   #speed = 105, gap_width = 60, pause = 2.5} ],
-#
-	## 8: ZIGZAG dốc, kèm một sóng tròn ở góc
-	#[ {kind = "zigzag", points = [2, 7], span = 800, wave_height = 34,
-	   #wavelength = 80, rings = 3, interval = 1.7, speed = 105, gap_width = 60,
-	   #pause = 2.5},
-	  #{points = [1], speed = 85, delay = 1.0, pause = 5.0} ],
-#
-	## 9: lưới. Thanh dọc đi ngang từ mép phải cắt thanh ngang đi xuống
-	#[ {kind = "sine", points = [4, 8], dir = "left", span = 400, wave_height = 24,
-	   #wavelength = 110, drift = 2.0, rings = 3, interval = 1.5, speed = 110,
-	   #gap_count = 2, gap_width = 70, pause = 2.5},
-	  #{kind = "bar", points = [2], span = 700, rings = 2, interval = 2.0,
-	   #speed = 100, gap_width = 65, delay = 1.0, pause = 3.0} ],
-#
-	## 10: hai thanh xuống chồng nhau + zigzag đi lên + sóng tròn
-	#[ {kind = "bar", points = [2, 3], span = 700, rings = 3, interval = 1.4,
-	   #speed = 115, gap_width = 60, pause = 2.0},
-	  #{points = [6, 7], speed = 95, delay = 1.2, pause = 5.0} ],
-#
-#
-	## 11: zigzag kết hợp sóng méo, chỗ đứt hẹp hơn
-	#[ {kind = "zigzag", points = [3, 6], span = 440, wave_height = 26,
-	   #wavelength = 100, rings = 2, interval = 1.8, speed = 115, pause = 2.5},
-	  #{points = [2, 7], lobes = 2, amplitude = 0.2, spin = 0.6, speed = 100,
-	   #gap_width = 70, delay = 1.2, pause = 4.5} ],
-#
-	## 12: màn cuối, thanh + sóng lượn + sóng méo cùng lúc
-	#[ {kind = "bar", points = [2, 3], span = 320, rings = 3, interval = 1.5,
-	   #speed = 120, pause = 2.5},
-	  #{kind = "sine", points = [4, 8], dir = "left", span = 360, wave_height = 22,
-	   #wavelength = 120, drift = 2.0, rings = 2, interval = 2.0, speed = 115,
-	   #delay = 0.8, pause = 3.0},
-	  #{points = [1, 5], lobes = 3, amplitude = 0.12, spin = 0.5, speed = 100,
-	   #gap_width = 70, delay = 1.6, pause = 4.5} ],
-#]
-#
-#var screen: Vector2
-#var mid_y: float
-#var clip_rect: Rect2
-#var emit_points: Array[Vector2] = []   # phần tử 0..7 ứng với điểm 1..8
-#
-#var level_index: int = 0
-#var run_id: int = 0
-#var wave_speed_mult: float = 1.0
-#
-#func _ready() -> void:
-	#screen = get_viewport_rect().size
-	#mid_y = screen.y / 2.0
-	#clip_rect = Rect2(0, 0, screen.x, mid_y - divider_thickness * 0.5)
-#
-	#_build_divider()
-	#_build_points()
-#
-	#goal_left.position = Vector2(goal_inset, mid_y / 2.0)
-	#goal_right.position = Vector2(screen.x - goal_inset, mid_y / 2.0)
-	#goal_left.body_entered.connect(_on_goal_entered.bind(goal_left))
-	#goal_right.body_entered.connect(_on_goal_entered.bind(goal_right))
-#
-	#start_level(0)
-#
-#func _build_divider() -> void:
-	#var size := Vector2(screen.x, divider_thickness)
-	#var body := StaticBody2D.new()
-	#body.position = Vector2(screen.x / 2.0, mid_y)
-#
-	#var shape := CollisionShape2D.new()
-	#var rect := RectangleShape2D.new()
-	#rect.size = size
-	#shape.shape = rect
-	#body.add_child(shape)
-#
-	#var visual := ColorRect.new()
-	#visual.size = size
-	#visual.position = -size / 2.0
-	#visual.color = Color(0.75, 0.75, 0.75)
-	#body.add_child(visual)
-#
-	#add_child(body)
-#
-## 8 điểm phát sóng nằm trên viền của nửa trên, cách đều nhau
-#func _build_points() -> void:
-	#emit_points.clear()
-	#var top_y := 0.0
-	#var bottom_y := clip_rect.end.y   # mép trên của thanh ngăn
-	#for y in [top_y, bottom_y]:
-		#for col in range(4):
-			#emit_points.append(Vector2(screen.x * col / 3.0, y))
-	#queue_redraw()
-#
-#func _draw() -> void:
-	#if not show_points:
-		#return
-	#var font := ThemeDB.fallback_font
-	#for i in range(emit_points.size()):
-		#var p := emit_points[i]
-		#draw_circle(p, 4.0, Color(1, 1, 1, 0.4))
-		#var label_offset := Vector2(
-			#10.0 if p.x < screen.x * 0.5 else -22.0,
-			#20.0 if p.y < mid_y * 0.5 else -8.0
-		#)
-		#draw_string(font, p + label_offset, str(i + 1),
-			#HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.4))
-#
-#func _process(delta: float) -> void:
-	#wave_speed_mult = move_toward(wave_speed_mult, 1.0, speed_recovery * delta)
-	#distortion = move_toward(distortion, 0.0, distortion_recovery * delta)
-	#for r in get_tree().get_nodes_in_group("ripples"):
-		#r.speed_scale = wave_speed_mult
-		#r.distortion = distortion
-#
-#func _on_ripple_touched() -> void:
-	#wave_speed_mult = minf(wave_speed_mult * touch_speed_gain, max_speed_mult)
-	#distortion = minf(distortion + distortion_per_hit, 1.0)
-	#
-## Level chẵn (0, 2, ...) đi trái sang phải; level lẻ đi ngược lại
-#func _active_goal(index: int) -> Goal:
-	#return goal_right if index % 2 == 0 else goal_left
-#
-#func start_level(index: int) -> void:
-	#level_index = index
-	#run_id += 1
-	#wave_speed_mult = 1.0
-	#distortion = 0.0
-	#var active := _active_goal(index)
-	#for g in [goal_left, goal_right]:
-		#g.set_active(g == active)
-	#for pattern in levels[index]:
-		#_run_pattern(pattern, run_id)
-#
-#func _on_goal_entered(body: Node2D, goal: Goal) -> void:
-	#if not body.is_in_group("player") or goal != _active_goal(level_index):
-		#return
-	#run_id += 1
-	#get_tree().call_group("ripples", "queue_free")
-	#goal.burst()
-	#goal.set_active(false)
-	#if level_index + 1 >= levels.size():
-		#print("Thắng toàn bộ game!")
-		#return
-	#await get_tree().create_timer(1.2).timeout
-	#start_level(level_index + 1)
-#
-#func _run_pattern(p: Dictionary, id: int) -> void:
-	#await get_tree().create_timer(p.get("delay", 0.0)).timeout
-	#while id == run_id:
-		#var origins := _pattern_origins(p)
-		#for i in range(p.get("rings", 1)):
-			#if id != run_id:
-				#return
-			#for o in origins:
-				#_spawn_ripple(o, p)
-			#await get_tree().create_timer(p.get("interval", 1.0)).timeout
-		#await get_tree().create_timer(p.get("pause", 2.0)).timeout
-#
-## Sóng tròn phát từ các điểm đã chọn; các loại thanh quét cả vùng nên chỉ cần một lần
-#func _pattern_origins(p: Dictionary) -> Array[Vector2]:
-	#var result: Array[Vector2] = []
-	#for n in p.get("points", [randi_range(1, 8)]):
-		#result.append(emit_points[n - 1])
-	#return result
-#
-#func _spawn_ripple(origin: Vector2, p: Dictionary) -> void:
-	#var r := Ripple.new()
-	#r.setup(p, origin, clip_rect, wave_speed_mult)
-	#r.distortion = distortion
-	#r.touched.connect(_on_ripple_touched)
-	#add_child(r)
 
 @export var portrait: CanvasItem                  # node ảnh nền; kéo vào ở Inspector
 @export var portrait_game_alpha: float = 0.35     # độ đậm của ảnh khi đang chơi
@@ -313,7 +27,30 @@ extends Node2D
 @export_file("*.wav") var sfx_goal_path: String = "res://Assets/Hit.wav"
 @export_file("*.wav") var sfx_hit_path: String = "res://Assets/Hi.wav"
 @export var sfx_volume_db: float = -4.0
+@export var debug_start_level: int = -1       # -1 = chơi bình thường; 22 = màn 23
+@export var debug_skip_story: bool = false    # true = bỏ qua cutscene khi thử
+@export var skill_action: StringName = &"Skill"
+@export var skill_unlock_level: int = 15        # màn 16
+@export var skill_min_distortion: float = 0.25  # nhiễu tối thiểu để dùng được
+@export var custom_wave_time: float = 6.0   # giây phát sóng trong cutscene
+@export var sweep_speed: float = 220.0      # tốc độ lan của sóng hồng (px/giây)
+@export var cutscene_wave_alpha: float = 0.3   # độ đậm sóng trong cutscene (0.3 = mờ đi 70%)
+@export var cs_image_sit: String = "res://Assets/C1.png"
+@export var cs_image_appear: String = "res://Assets/C2.png"
+@export var cs_image_walk: String = "res://Assets/C3.png"
+@export var cs_image_touch: String = "res://Assets/C4.png"
+@export var cs_sit_time: float = 5.0       # giây anh ngồi một mình
+@export var cs_frame_time: float = 1.0     # giây mỗi khung chị bước tới
+@export var cs_touch_delay: float = 1.0    # giây từ lúc chạm vai tới lúc vòng hồng xuất hiện
 
+
+var _scripted_mode: int = 0    # 0 = bình thường, 1 = giật đỏ khi trúng, 2 = bỏ qua va chạm
+var _flash: ColorRect
+var _shake_tween: Tween
+var _shake_base: Vector2 = Vector2.ZERO
+var _skill_used: bool = false
+var _skill_tween: Tween
+var _skill_label: Label
 var _sfx_orb: AudioStream
 var _sfx_goal: AudioStream
 var _sfx_hit: AudioStream
@@ -362,9 +99,9 @@ var story_data: Dictionary = {
 	# Trước màn 23: người đàn ông
 	22: {image = "res://Assets/man.png",
 		breath_image = "res://Assets/man_breath.png",
-		boxes = ["Did you call your mother?",
-				 "What do you want to be remembered for?",
-				 "Are you happy?"]},
+		boxes = ["...",
+				 "...",
+				 "..."]},
 }
 
 # Số bóng cần nhặt ở từng màn (23 màn)
@@ -519,17 +256,12 @@ var levels: Array = [
 	   delay = 1.6, pause = 2.0} ],
 
 	# ===== Hồi cuối: người đàn ông (màn 23) =====
-	# 23: mọi loại sóng cùng lúc
-	[ {kind = "bar", points = [2, 3], span = 800, rings = 3, interval = 1.3,
-	   speed = 125, gap_width = 55, pause = 2.0},
-	  {kind = "zigzag", points = [6, 7], span = 800, wave_height = 34,
-	   wavelength = 80, rings = 3, interval = 1.5, speed = 120, gap_width = 55,
-	   delay = 0.7, pause = 2.0},
-	  {kind = "sine", points = [4, 8], dir = "left", span = 360, wave_height = 26,
-	   wavelength = 100, drift = 2.5, rings = 2, interval = 1.8, speed = 120,
-	   gap_count = 2, gap_width = 60, delay = 1.4, pause = 2.5},
-	  {points = [1, 5], lobes = 3, amplitude = 0.15, spin = 0.9, speed = 105,
-	   gap_width = 65, delay = 2.0, pause = 3.5} ],
+	# Màn 23: chỉ một nguồn sóng tròn ở điểm 2
+	[
+		{"kind": "ring", "points": [2], "rings": 1, "interval": 0.0, "pause": 5.0,
+		 "delay": 1.5, "speed": 130.0, "thickness": 3.0, "damage": 1,
+		 "gap_count": 4, "gap_width": 100.0},
+	],
 ]
 
 var story: Story
@@ -554,12 +286,22 @@ var _restarting: bool = false
 var _cover: ColorRect
 var _orb_nodes: Array[Orb] = []
 
+const LETTERS := {
+	"M": ["X...X", "XX.XX", "X.X.X", "X...X", "X...X", "X...X", "X...X"],
+	"I": ["XXX", ".X.", ".X.", ".X.", ".X.", ".X.", "XXX"],
+	"N": ["X...X", "XX..X", "X.X.X", "X..XX", "X...X", "X...X", "X...X"],
+	"D": ["XXXX.", "X...X", "X...X", "X...X", "X...X", "X...X", "XXXX."],
+}
+var dot_gap: float = 28.0              # khoảng cách giữa các chấm của chữ
+var _final_positions: Array[Vector2] = []   # chỗ từng orb bị nhặt
+
 func _ready() -> void:
 	screen = get_viewport_rect().size
 	# Khung chơi nằm giữa màn hình
 	clip_rect = Rect2((screen - frame_size) / 2.0, frame_size)
 	RenderingServer.set_default_clear_color(Color("f5ecd7"))   # màu kem sữa
 	_build_screen_filter()
+	_build_skill_hud()
 	_load_sfx()
 
 	_build_frame()
@@ -575,14 +317,14 @@ func _ready() -> void:
 	# Đặt người chơi vào giữa khung
 	var player := get_tree().get_first_node_in_group("player") as Node2D
 	if player != null:
-		player.global_position = _player_start_pos(0)
+		player.global_position = _player_start_pos(maxi(debug_start_level, 0))
 
 	story = Story.new()
 	story.portrait = portrait
 	story.game_alpha = portrait_game_alpha
 	add_child(story)
 
-	start_level(0)
+	start_level(maxi(debug_start_level, 0), debug_skip_story and debug_start_level >= 0)
 
 func _player_start_pos(index: int) -> Vector2:
 	if index % 2 == 0:
@@ -643,6 +385,12 @@ func _build_frame() -> void:
 # Nửa độ dày của đường kim tại vị trí t (0 đến 1 dọc theo chiều dài)
 func _needle_half(t: float) -> float:
 	return line_thickness * 0.5 * pow(1.0 - absf(2.0 * t - 1.0), taper_power)
+	
+func _wave_color() -> Color:
+	var r := Ripple.new()
+	var c := r.color
+	r.free()
+	return c
 
 # Đường kim nằm ngang tại toạ độ y: nhọn hai đầu, dày nhất ở giữa
 func _make_needle(y: float) -> Polygon2D:
@@ -660,8 +408,8 @@ func _make_needle(y: float) -> Polygon2D:
 		pts.append(Vector2(lerpf(x0, x1, t), y + _needle_half(t)))
 	var poly := Polygon2D.new()
 	poly.polygon = pts
-	poly.color = frame_color
 	poly.antialiased = true
+	poly.color = _wave_color()
 	return poly
 
 # Hiện hoặc ẩn khung (ẩn trong lúc kể chuyện, hiện mờ dần khi bắt đầu chơi)
@@ -706,6 +454,7 @@ func _process(delta: float) -> void:
 		r.speed_scale = wave_speed_mult
 		r.distortion = distortion
 	_update_breathing()
+	_update_skill()
 
 # Giữ nút thì ảnh nền đổi sang ảnh thở, thả ra thì về ảnh thường
 func _update_breathing() -> void:
@@ -723,6 +472,11 @@ func _on_ripple_touched() -> void:
 	if now - _last_touch_time < touch_cooldown:
 		return
 	_last_touch_time = now
+	if _scripted_mode != 0:
+		if _scripted_mode == 1:
+			_play_sfx(_sfx_hit)
+			_hit_flash()
+		return
 	_play_sfx(_sfx_hit, 1.0 - distortion * 0.3)
 	# Đang ở đỉnh (zigzag) mà vẫn đụng thêm: quay về đầu arc
 	if distortion >= 1.0:
@@ -743,14 +497,24 @@ func start_level(index: int, skip_story: bool = false) -> void:
 	wave_speed_mult = 1.0
 	distortion = 0.0
 	peak_timer = 0.0
+	_skill_used = false
 	_play_arc_music(index)
 	# Goal ẩn cho tới khi nhặt hết bóng
 	goal_left.set_active(false)
 	goal_right.set_active(false)
 	if story_data.has(index) and not skip_story:
 		await _play_story(story_data[index])
+		story.restore_portrait()   # ảnh adult hiện lại như thường
+		# Sau cutscene tự làm: dòng hướng dẫn kỹ năng
+		if index == skill_unlock_level:
+			await story.show_hint(
+				"Press %s to release stress" % _key_name(skill_action), skill_action)
+	_refresh_skill_label()
 	_maybe_chatter(index)
-	_spawn_orbs(orb_counts[index] if index < orb_counts.size() else 3)
+	if _is_final_level():
+		_spawn_final_orbs()
+	else:
+		_spawn_orbs(orb_counts[index] if index < orb_counts.size() else 3)
 	for pattern in levels[index]:
 		_run_pattern(pattern, run_id)
 
@@ -774,13 +538,10 @@ func _play_story(entry: Dictionary) -> void:
 	_show_frame(true)
 
 # Chỗ để bạn chèn các cutscene tự làm
-func _play_custom(cutscene_name: String) -> void:
-	match cutscene_name:
+func _play_custom(id: String) -> void:
+	match id:
 		"cutscene_4":
-			# TODO: thay bằng cutscene của bạn. Tạm thời chỉ chờ 1 giây.
-			await get_tree().create_timer(1.0).timeout
-		_:
-			pass
+			await _cutscene_waves()
 
 func _on_goal_entered(body: Node2D, goal: Goal) -> void:
 	if not body.is_in_group("player") or goal != _active_goal(level_index) or orbs_left > 0:
@@ -820,6 +581,8 @@ func _spawn_ripple(origin: Vector2, p: Dictionary) -> void:
 	r.setup(p, origin, clip_rect, wave_speed_mult)
 	r.distortion = distortion
 	r.touched.connect(_on_ripple_touched)
+	if _scripted_mode == 1:
+		r.modulate.a = cutscene_wave_alpha   # sóng trong cutscene mờ đi
 	add_child(r)
 
 # --- Bóng cần nhặt ---
@@ -862,11 +625,19 @@ func _random_orb_position(placed: Array[Vector2], avoid: Array[Vector2]) -> Vect
 			return candidate
 	return candidate
 
-func _on_orb_collected(_orb: Orb) -> void:
-	orbs_left -= 1
+func _on_orb_collected(orb: Orb) -> void:
 	_play_sfx(_sfx_orb, randf_range(0.95, 1.08))
-	if orbs_left <= 0:
-		_active_goal(level_index).set_active(true)
+	if _is_final_level():
+		_final_positions.append(orb.position)
+	orbs_left -= 1
+	if orbs_left > 0:
+		return
+	var id := run_id
+	if _is_final_level():
+		await _form_mind()
+		if id != run_id or _restarting:
+			return
+	_active_goal(level_index).set_active(true)
 		
 # Màn mở đầu của arc chứa màn index
 func _arc_start(index: int) -> int:
@@ -994,3 +765,260 @@ func _maybe_chatter(index: int) -> void:
 	if list.is_empty():
 		return
 	story.pop(list[n % list.size()])
+
+func _is_final_level() -> bool:
+	return level_index == levels.size() - 1
+
+# Tọa độ từng chấm của chữ MIND, đặt giữa khung chơi
+func _mind_targets() -> Array[Vector2]:
+	var cells: Array[Vector2i] = []
+	var col_offset := 0
+	for ch in "MIND":
+		var rows: Array = LETTERS[ch]
+		var w: int = rows[0].length()
+		for y in range(rows.size()):
+			for x in range(w):
+				if rows[y][x] == "X":
+					cells.append(Vector2i(col_offset + x, y))
+		col_offset += w + 2   # 2 cột trống giữa các chữ
+	var total_cols := col_offset - 2
+	var origin := clip_rect.get_center() \
+		- Vector2((total_cols - 1) * dot_gap, 6.0 * dot_gap) * 0.5
+	var pts: Array[Vector2] = []
+	for c in cells:
+		pts.append(origin + Vector2(c.x, c.y) * dot_gap)
+	return pts
+
+# Rải rất nhiều orb nhạt, gần nhau hơn màn thường
+func _spawn_final_orbs() -> void:
+	var count := _mind_targets().size()
+	orbs_left = count
+	_orb_nodes.clear()
+	_final_positions.clear()
+	var avoid: Array[Vector2] = [goal_left.position, goal_right.position]
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	if player != null:
+		avoid.append(player.global_position)
+	var area := clip_rect.grow(-orb_margin)
+	var placed: Array[Vector2] = []
+	for i in range(count):
+		var pos := Vector2.ZERO
+		for attempt in range(60):
+			pos = Vector2(
+				randf_range(area.position.x, area.end.x),
+				randf_range(area.position.y, area.end.y))
+			var ok := true
+			for q in placed:
+				if q.distance_to(pos) < 40.0:
+					ok = false
+					break
+			if ok:
+				for q in avoid:
+					if q.distance_to(pos) < 110.0:
+						ok = false
+						break
+			if ok:
+				break
+		placed.append(pos)
+		var orb := Orb.new()
+		orb.radius = 11.0
+		orb.softness = 0.8
+		orb.position = pos
+		orb.collected.connect(_on_orb_collected)
+		add_child(orb)
+		_orb_nodes.append(orb)
+
+# Từng orb hiện lại ở chỗ đã nhặt rồi bay về chữ MIND
+func _form_mind() -> void:
+	var id := run_id
+	var targets := _mind_targets()
+	targets.sort_custom(func(a, b): return a.x < b.x)   # từ trái sang phải
+	for i in range(targets.size()):
+		if id != run_id:
+			return
+		var from: Vector2 = clip_rect.get_center()
+		if i < _final_positions.size():
+			from = _final_positions[i]
+		var ghost := Orb.new()
+		ghost.radius = 9.0
+		ghost.softness = 0.8
+		ghost.monitoring = false      # chỉ để trang trí, không nhặt được
+		ghost.monitorable = false
+		ghost.position = from
+		add_child(ghost)
+		_orb_nodes.append(ghost)      # để dọn khi về đầu arc
+		ghost.modulate.a = 0.0
+		var t := ghost.create_tween().set_parallel(true)
+		t.tween_property(ghost, "modulate:a", ghost.base_alpha, 0.25)
+		t.tween_property(ghost, "position", targets[i], 0.9) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		await get_tree().create_timer(0.05).timeout
+	await get_tree().create_timer(1.8).timeout   # giữ chữ MIND một lúc
+	
+# Tên phím thật đang gán cho một hành động
+func _key_name(action: StringName) -> String:
+	if InputMap.has_action(action):
+		for e in InputMap.action_get_events(action):
+			if e is InputEventKey:
+				var code: int = e.physical_keycode
+				if code == 0:
+					code = e.keycode
+				return OS.get_keycode_string(code)
+			if e is InputEventJoypadButton:
+				return "Button " + str(e.button_index)
+	return "C"
+
+func _skill_unlocked() -> bool:
+	return level_index >= skill_unlock_level
+
+func _update_skill() -> void:
+	if _restarting or _skill_used or not _skill_unlocked():
+		return
+	if story != null and story.busy:
+		return
+	if not InputMap.has_action(skill_action):
+		return
+	if Input.is_action_just_pressed(skill_action) and distortion >= skill_min_distortion:
+		_use_skill()
+
+func _use_skill() -> void:
+	_skill_used = true
+	peak_timer = 0.0
+	distortion = 0.0
+	wave_speed_mult = 1.0
+	if _skill_tween != null:
+		_skill_tween.kill()
+	_refresh_skill_label()
+
+# Dòng nhỏ ở góc dưới bên trái cho biết kỹ năng còn dùng được không
+func _build_skill_hud() -> void:
+	var cl := CanvasLayer.new()
+	cl.layer = 15
+	add_child(cl)
+	_skill_label = Label.new()
+	_skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_skill_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	_skill_label.add_theme_font_size_override("font_size", 18)
+	_skill_label.add_theme_color_override("font_color", Color(0.20, 0.16, 0.14))
+	_skill_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cl.add_child(_skill_label)
+	_skill_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 24)
+	_refresh_skill_label()
+
+func _refresh_skill_label() -> void:
+	if _skill_label == null:
+		return
+	_skill_label.visible = _skill_unlocked()
+	_skill_label.text = "[%s] release stress" % _key_name(skill_action)
+	_skill_label.modulate.a = 0.25 if _skill_used else 0.8
+
+func _cutscene_waves() -> void:
+	story.busy = true
+	story.set_breathing(false)
+	story._ensure_portrait()   # ghi nhớ ảnh adult để lát nữa khôi phục
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+
+	# 1. Ảnh anh ngồi hiện lên; kéo người chơi về giữa khung rồi khóa
+	_set_cutscene_image(cs_image_sit)
+	story.fade_portrait(1.0, 0.8)
+	if player != null:
+		player.process_mode = Node.PROCESS_MODE_DISABLED
+		player.set("invincible", false)
+		await create_tween().tween_property(player, "global_position",
+			clip_rect.get_center() + global_position, 0.8) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT).finished
+	else:
+		await get_tree().create_timer(0.8).timeout
+
+	# 2. Anh ngồi một mình, sóng tròn ở cả 8 nốt, cùng lúc, 0.5 giây một đợt
+	_scripted_mode = 1
+	var pattern := {
+		"kind": "ring", "points": [1, 2, 3, 4, 5, 6, 7, 8],
+		"rings": 1, "interval": 0.0, "pause": 0.5, "delay": 0.3,
+		"speed": 200.0, "thickness": 3.0, "damage": 0,
+		"gap_count": 4, "gap_width": 90.0,
+	}
+	_run_pattern(pattern, run_id)
+	await get_tree().create_timer(maxf(cs_sit_time - 0.8, 0.0)).timeout
+
+	# 3. Chị xuất hiện, bước tới, chạm vai
+	_set_cutscene_image(cs_image_appear)
+	await get_tree().create_timer(cs_frame_time).timeout
+	_set_cutscene_image(cs_image_walk)
+	await get_tree().create_timer(cs_frame_time).timeout
+	_set_cutscene_image(cs_image_touch)
+	run_id += 1   # ngừng phát sóng mới khi chị chạm vai
+	await get_tree().create_timer(cs_touch_delay).timeout
+
+	# 4. Vòng hồng từ người chơi quét sạch mọi sóng
+	_scripted_mode = 2
+	if player != null:
+		await _pink_sweep(player.global_position)
+	get_tree().call_group("ripples", "queue_free")
+
+	# 5. Kéo người chơi về phía xuất phát của màn rồi mở khóa
+	_scripted_mode = 0
+	if player != null:
+		await create_tween().tween_property(player, "global_position",
+			_player_start_pos(level_index), 1.0) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT).finished
+		player.process_mode = Node.PROCESS_MODE_INHERIT
+	story.busy = false
+
+func _pink_sweep(origin: Vector2) -> void:
+	var sw := Sweep.new()
+	sw.position = clip_rect.position
+	sw.size = clip_rect.size
+	sw.clip_contents = true     # sóng hồng cũng bị cắt trong khung chơi
+	sw.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sw.center = origin - (global_position + clip_rect.position)
+	add_child(sw)
+	var max_r := clip_rect.size.length() * 0.5 + 80.0
+	var t := create_tween()
+	t.tween_method(_sweep_step.bind(sw, origin), 0.0, max_r, max_r / sweep_speed)
+	await t.finished
+	var fade := create_tween()
+	fade.tween_property(sw, "modulate:a", 0.0, 0.3)
+	await fade.finished
+	sw.queue_free()
+
+func _sweep_step(r: float, sw: Sweep, origin: Vector2) -> void:
+	if is_instance_valid(sw):
+		sw.radius = r
+	for rip in get_tree().get_nodes_in_group("ripples"):
+		rip.erase_center = origin
+		rip.erase_radius = r
+
+# Giật đỏ và rung màn hình khi bị sóng đánh trúng
+func _hit_flash() -> void:
+	if _flash == null:
+		var layer := CanvasLayer.new()
+		layer.layer = 28
+		add_child(layer)
+		_flash = ColorRect.new()
+		_flash.color = Color(1.0, 0.1, 0.1, 0.0)
+		_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(_flash)
+		_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_flash.color.a = 0.45
+	create_tween().tween_property(_flash, "color:a", 0.0, 0.3)
+
+	if _shake_tween != null and _shake_tween.is_running():
+		_shake_tween.kill()
+		position = _shake_base
+	else:
+		_shake_base = position
+	_shake_tween = create_tween()
+	for i in range(6):
+		_shake_tween.tween_property(self, "position",
+			_shake_base + Vector2(randf_range(-10.0, 10.0), randf_range(-8.0, 8.0)), 0.03)
+	_shake_tween.tween_property(self, "position", _shake_base, 0.05)
+
+# Đổi ảnh nền sang một khung của cutscene (không đổi ảnh thường của arc)
+func _set_cutscene_image(path: String) -> void:
+	if not ResourceLoader.exists(path):
+		push_warning("Không tìm thấy ảnh cutscene: " + path)
+		return
+	var tex := load(path) as Texture2D
+	if tex != null and story.portrait != null:
+		story.portrait.texture = tex
